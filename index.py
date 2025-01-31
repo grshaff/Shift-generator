@@ -13,8 +13,10 @@ import threading  # Import threading
 # Fungsi buat GUI  
 def create_widgets():
     # Logo
-    my_image = ImageTk.PhotoImage(Image.open("assets/SMG-logo.png"))
-    root.image_label = CTkLabel(root, image=my_image, text="")
+    my_image = Image.open("assets/SMG-logo.png")
+    my_image_resized = my_image.resize((113, 77))
+    my_image_tk = ImageTk.PhotoImage(my_image_resized)
+    root.image_label = CTkLabel(root, image=my_image_tk, text="")
     root.image_label.place(x=140, y=20)
 
     add_img = Image.open("assets/add.png")
