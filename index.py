@@ -13,13 +13,13 @@ import threading  # Import threading
 # Fungsi buat GUI  
 def create_widgets():
     # Logo
-    my_image = Image.open("assets/SMG-logo.png")
+    my_image = Image.open("C:/Users/Giri/Documents/Codingan/Shift-generator/assets/SMG-logo.png")
     my_image_resized = my_image.resize((103, 67))
     my_image_tk = ImageTk.PhotoImage(my_image_resized)
     root.image_label = CTkLabel(root, image=my_image_tk, text="")
     root.image_label.place(relx=0.5, rely=0.15, anchor="center")  # Tengah secara horizontal dan sedikit di atas
 
-    add_img = Image.open("assets/add.png")
+    add_img = Image.open("C:/Users/Giri/Documents/Codingan/Shift-generator/assets/add.png")
     add_img_resized = add_img.resize((22, 22))
     add_img_tk = ImageTk.PhotoImage(add_img_resized)
 
@@ -89,6 +89,7 @@ def clear_data():
     root.logFrame.config(state='normal')
     root.logFrame.delete('1.0', tk.END)
     root.logFrame.config(state='disabled')
+    inputted_names.clear()
 
 # Fungsi untuk memulai thread untuk generate data
 def start_generate_data_thread():
@@ -155,7 +156,13 @@ def generate_data():
         messagebox.showerror("ERROR", "No names to save!")
 
 
+def update_font(event):
+    # Menghitung ukuran font berdasarkan lebar jendela
+    font_size = int(root.winfo_width() / 32)  # Misalnya, ukuran font 1/20 dari lebar jendela
 
+    # Update font untuk semua widget yang sesuai
+    root.logFrame.config(font=("Helvetica", font_size))
+    root.logFrame.config(font=("Helvetica", font_size))
 
 # Buat objek class tk
 root = CTk()
@@ -165,6 +172,7 @@ root.title("Managed Service Shift Generator")
 root.geometry("360x350")
 root.resizable(False, False)  # Biarkan resize agar lebih fleksibel di berbagai resolusi
 set_appearance_mode("light")
+root.bind("<Configure>", update_font)
 
 # Variable
 namevar = StringVar()
