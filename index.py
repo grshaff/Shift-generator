@@ -129,28 +129,10 @@ def generate_data():
 
             shift_data.append([current_day, day + 1] + day_shift)
 
-        # Buat file CSV region america
+        # Buat file CSV
         filename = "shift.csv"
         with open(filename, mode='w', newline='') as file:
             writer = csv.writer(file, delimiter=',')
-            writer.writerow(["Hari", "No", "Malam", "Pagi", "Sore"])
-
-            # Menulis hasil shift ke dalam CSV
-            for day_shift in shift_data:
-                writer.writerow(day_shift)
-
-            # Menambahkan dua baris kosong
-            writer.writerow([])
-            writer.writerow([])
-
-            # Menulis jumlah shift setiap orang
-            for name, shifts in shift_count.items():
-                result_row = f"{name}: Malam = {shifts['Malam']}, Pagi = {shifts['Pagi']}, Sore = {shifts['Sore']}"
-                writer.writerow([result_row])
-
-        # Buat file CSV region eropa
-        with open(filename, mode='w', newline='') as file:
-            writer = csv.writer(file, delimiter=';')
             writer.writerow(["Hari", "No", "Malam", "Pagi", "Sore"])
 
             # Menulis hasil shift ke dalam CSV
