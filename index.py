@@ -11,7 +11,7 @@ def create_widgets():
     # Logo
     my_image = ImageTk.PhotoImage(Image.open("assets/SMG-logo.png"))
     root.image_label = CTkLabel(root, image=my_image, text="")
-    root.image_label.place(x=125, y=20)
+    root.image_label.place(x=140, y=20)
 
     add_img = Image.open("assets/add.png")  # Membuka gambar
     add_img_resized = add_img.resize((30, 30))  # Mengubah ukuran gambar (misalnya 50x50 piksel)
@@ -31,28 +31,35 @@ def create_widgets():
     root.logLabel = CTkLabel(root, text="Names:")
     root.logLabel.place(x=30, y=165)
 
-    root.logFrame = st.ScrolledText(root, wrap=tk.WORD, width=25, height=8, font=("Montserrat", 10)) 
+    root.logFrame = st.ScrolledText(root, wrap=tk.WORD, width=18, height=6, font=("Montserrat", 16)) 
     root.logFrame.place(x=45, y=295)
     root.logFrame.configure(state ='disabled') 
 
-    # Label-input days
-    root.labeldays = CTkLabel(root, text="Days:")
+    # Label-input date
+    root.labeldays = CTkLabel(root, text="Number of Days:")
     root.labeldays.place(x=210, y= 100)
 
-    root.daycomBox = CTkComboBox(root, values=['28', '29', '30', '31'], width=80,)
+    root.daycomBox = CTkComboBox(root, values=['28', '29', '30', '31'], width=120)
     root.daycomBox.place(x=210, y=130)
+
+    # Label-input first day of the month
+    root.labeldays = CTkLabel(root, text="First Day:")
+    root.labeldays.place(x=210, y= 165)
+
+    root.daycomBox = CTkComboBox(root, values=['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], width=120)
+    root.daycomBox.place(x=210, y=195)
 
     # rules Button
     root.GenerateBTN = CTkButton(root, text="Rules", command='', width=120, fg_color="gray", corner_radius=32)
-    root.GenerateBTN.place(x=190, y=195)
+    root.GenerateBTN.place(x=210, y=235)
 
     # clear Button
-    root.GenerateBTN = CTkButton(root, text="Clear", command='', width=120, fg_color="red", corner_radius=32)
-    root.GenerateBTN.place(x=190, y=225)
+    root.GenerateBTN = CTkButton(root, text="Clear", command=clear_data, width=120, fg_color="red", corner_radius=32)
+    root.GenerateBTN.place(x=210, y=268)
 
     # generate Button
-    root.GenerateBTN = CTkButton(root, text="Generate", command='', width=120, fg_color="green", corner_radius=32)
-    root.GenerateBTN.place(x=190, y=255)
+    root.GenerateBTN = CTkButton(root, text="Generate", command='', width=300, fg_color="green", corner_radius=32)
+    root.GenerateBTN.place(x=30, y=305)
 
 # button add name func
 def log_data():
@@ -72,12 +79,17 @@ def log_data():
     else:
         messagebox.showerror("ERROR", "Please input a name!")
 
+def clear_data():
+    root.logFrame.config(state='normal')
+    root.logFrame.delete('1.0', tk.END)
+    root.logFrame.config(state='disabled')
+
 # Buat objek class tk
 root = CTk()
 
 # Setting ukuran judul
 root.title("Managed Service Shift Generator")
-root.geometry("340x320")
+root.geometry("360x350")
 root.resizable(False, False)
 set_appearance_mode("light")
 
