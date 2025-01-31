@@ -29,6 +29,7 @@ def create_widgets():
 
     root.entryname = CTkEntry(root, width=120, textvariable=namevar)
     root.entryname.place(x=30, y=130)
+    root.entryname.bind("<Return>", log_data)
 
     root.addButton = CTkButton(root, text='', image=add_img_tk, command=log_data, fg_color='transparent', hover_color="", width=10)
     root.addButton.place(x=155, y=130)
@@ -68,7 +69,7 @@ def create_widgets():
     root.GenerateBTN.place(x=30, y=305)
 
 # button add name func
-def log_data():
+def log_data(event=None):
     input_name = root.entryname.get().strip()  # Ambil teks dari entryname dan hapus spasi berlebih
 
     if input_name != '':  # Pastikan input tidak kosong
@@ -128,10 +129,28 @@ def generate_data():
 
             shift_data.append([current_day, day + 1] + day_shift)
 
-        # Buat file CSV
+        # Buat file CSV region america
         filename = "shift.csv"
         with open(filename, mode='w', newline='') as file:
             writer = csv.writer(file, delimiter=',')
+            writer.writerow(["Hari", "No", "Malam", "Pagi", "Sore"])
+
+            # Menulis hasil shift ke dalam CSV
+            for day_shift in shift_data:
+                writer.writerow(day_shift)
+
+            # Menambahkan dua baris kosong
+            writer.writerow([])
+            writer.writerow([])
+
+            # Menulis jumlah shift setiap orang
+            for name, shifts in shift_count.items():
+                result_row = f"{name}: Malam = {shifts['Malam']}, Pagi = {shifts['Pagi']}, Sore = {shifts['Sore']}"
+                writer.writerow([result_row])
+
+        # Buat file CSV region eropa
+        with open(filename, mode='w', newline='') as file:
+            writer = csv.writer(file, delimiter=';')
             writer.writerow(["Hari", "No", "Malam", "Pagi", "Sore"])
 
             # Menulis hasil shift ke dalam CSV
