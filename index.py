@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import *
+from tkinter import messagebox
 from customtkinter import *
 import tkinter.scrolledtext as st 
 from PIL import ImageTk, Image
 
-# Fungsi buat GUI
+# Fungsi buat GUI  
 def create_widgets():
-
+    
     # Logo
     my_image = ImageTk.PhotoImage(Image.open("assets/SMG-logo.png"))
     root.image_label = CTkLabel(root, image=my_image, text="")
@@ -23,7 +24,7 @@ def create_widgets():
     root.entryname = CTkEntry(root, width=120, textvariable=namevar)
     root.entryname.place(x=30, y=130)
 
-    root.addButton = CTkButton(root, text='', image=add_img_tk, command='', fg_color='transparent', hover_color="", width=10)
+    root.addButton = CTkButton(root, text='', image=add_img_tk, command=log_data, fg_color='transparent', hover_color="", width=10)
     root.addButton.place(x=155, y=130)
 
     # Log Label
@@ -53,6 +54,24 @@ def create_widgets():
     root.GenerateBTN = CTkButton(root, text="Generate", command='', width=120, fg_color="green", corner_radius=32)
     root.GenerateBTN.place(x=190, y=255)
 
+# button add name func
+def log_data():
+
+    input_name = root.entryname.get().strip()  # Ambil teks dari entryname dan hapus spasi berlebih
+
+    if input_name != '':  # Pastikan input tidak kosong
+        if input_name in inputted_names:  # Periksa apakah nama sudah ada di inputted_names
+            messagebox.showerror("ERROR", f"Name '{input_name}' Already inserted!")
+        else:
+            # Jika nama belum ada, masukkan ke daftar dan logFrame
+            inputted_names.append(input_name)
+            root.logFrame.config(state='normal')
+            root.logFrame.insert(tk.END, input_name + '\n')  # Tambahkan nama ke logFrame
+            root.logFrame.config(state='disabled')
+            root.entryname.delete(0, tk.END)  # Bersihkan entry field setelah input
+    else:
+        messagebox.showerror("ERROR", "Please input a name!")
+
 # Buat objek class tk
 root = CTk()
 
@@ -64,6 +83,7 @@ set_appearance_mode("light")
 
 # Variable
 namevar = StringVar()
+inputted_names = []
 
 
 create_widgets()
