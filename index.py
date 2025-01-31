@@ -98,61 +98,63 @@ def start_generate_data_thread():
 def generate_data():
     # Ambil nilai dari combobox
     max_days = int(root.datecomBox.get())
-    start_day = root.daycomBox.get() 
+    start_day = root.daycomBox.get()
 
     # Daftar nama hari dalam urutan yang benar
     days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    
-    # Menentukan hari pertama dalam urutan
     start_index = days_of_week.index(start_day)
-
-    # Mengatur urutan hari untuk shift
     week_days = days_of_week[start_index:] + days_of_week[:start_index]
 
     if inputted_names:
+        # Shuffle sekali sebelum loop untuk efisiensi
         random.shuffle(inputted_names)
 
         shift_data = []
-        last_names = [] 
+        total_names = len(inputted_names)
+
+        # Dictionary untuk menghitung jumlah shift
+        shift_count = {name: {"Malam": 0, "Pagi": 0, "Sore": 0} for name in inputted_names}
 
         for day in range(max_days):
-            day_shift = []
             current_day = week_days[day % len(week_days)]
 
-            for shift in ["Malam", "Pagi", "Sore"]:
-                # Cari nama yang belum muncul di shift sebelumnya
-                available_names = [name for name in inputted_names if name not in last_names]
-                if not available_names:
-                    # Jika tidak ada nama yang tersisa, kembalikan ke daftar semua nama
-                    available_names = inputted_names.copy()
+            # Ambil nama secara berurutan tanpa pengacakan tambahan
+            day_shift = [inputted_names[i % total_names] for i in range(day * 3, (day + 1) * 3)]
 
-                selected_name = random.choice(available_names)
-                day_shift.append(selected_name)
-                last_names.append(selected_name)
+            # Update shift_count untuk setiap shift
+            shift_count[day_shift[0]]["Malam"] += 1
+            shift_count[day_shift[1]]["Pagi"] += 1
+            shift_count[day_shift[2]]["Sore"] += 1
 
-            # Mengatur nama-nama yang tidak boleh berurutan dalam hari yang sama
-            while len(set(day_shift)) != len(day_shift):
-                random.shuffle(day_shift)
-
-            # Menambahkan shift data untuk hari ke-`day`
-            shift_data.append([current_day] + day_shift)
+            shift_data.append([current_day, day + 1] + day_shift)
 
         # Buat file CSV
         filename = "shift.csv"
         with open(filename, mode='w', newline='') as file:
-            writer = csv.writer(file, delimiter=';')
-            writer.writerow(["Hari", "Malam", "Pagi", "Sore"])  # Tulis header kolom
+            writer = csv.writer(file, delimiter=',')
+            writer.writerow(["Hari", "No", "Malam", "Pagi", "Sore"])
 
-            # Menulis hasil shift ke dalam CSV dengan nomor urut
-            for day_index, day_shift in enumerate(shift_data, 1):
-                row = [f"Hari {day_index} ({day_shift[0]})"] + day_shift[1:]
-                writer.writerow(row)
+            # Menulis hasil shift ke dalam CSV
+            for day_shift in shift_data:
+                writer.writerow(day_shift)
+
+            # Menambahkan dua baris kosong
+            writer.writerow([])
+            writer.writerow([])
+
+            # Menulis jumlah shift setiap orang
+            for name, shifts in shift_count.items():
+                result_row = f"{name}: Malam = {shifts['Malam']}, Pagi = {shifts['Pagi']}, Sore = {shifts['Sore']}"
+                writer.writerow([result_row])
 
         # Buka file CSV secara otomatis
         os.startfile(filename)
 
     else:
         messagebox.showerror("ERROR", "No names to save!")
+
+
+
 
 # Buat objek class tk
 root = CTk()

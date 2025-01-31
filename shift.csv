@@ -1,2 +1,36 @@
-Malam;Pagi;Sore
-giri;awd;awdf
+Hari,No,Malam,Pagi,Sore
+Monday,1,wisnu,giri,adel
+Tuesday,2,arif,tia,wisnu
+Wednesday,3,giri,adel,arif
+Thursday,4,tia,wisnu,giri
+Friday,5,adel,arif,tia
+Saturday,6,wisnu,giri,adel
+Sunday,7,arif,tia,wisnu
+Monday,8,giri,adel,arif
+Tuesday,9,tia,wisnu,giri
+Wednesday,10,adel,arif,tia
+Thursday,11,wisnu,giri,adel
+Friday,12,arif,tia,wisnu
+Saturday,13,giri,adel,arif
+Sunday,14,tia,wisnu,giri
+Monday,15,adel,arif,tia
+Tuesday,16,wisnu,giri,adel
+Wednesday,17,arif,tia,wisnu
+Thursday,18,giri,adel,arif
+Friday,19,tia,wisnu,giri
+Saturday,20,adel,arif,tia
+Sunday,21,wisnu,giri,adel
+Monday,22,arif,tia,wisnu
+Tuesday,23,giri,adel,arif
+Wednesday,24,tia,wisnu,giri
+Thursday,25,adel,arif,tia
+Friday,26,wisnu,giri,adel
+Saturday,27,arif,tia,wisnu
+Sunday,28,giri,adel,arif
+
+
+"wisnu: Malam = 6, Pagi = 5, Sore = 6"
+"giri: Malam = 6, Pagi = 6, Sore = 5"
+"adel: Malam = 5, Pagi = 6, Sore = 6"
+"arif: Malam = 6, Pagi = 5, Sore = 6"
+"tia: Malam = 5, Pagi = 6, Sore = 5"
