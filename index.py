@@ -14,59 +14,59 @@ import threading  # Import threading
 def create_widgets():
     # Logo
     my_image = Image.open("assets/SMG-logo.png")
-    my_image_resized = my_image.resize((113, 77))
+    my_image_resized = my_image.resize((103, 67))
     my_image_tk = ImageTk.PhotoImage(my_image_resized)
     root.image_label = CTkLabel(root, image=my_image_tk, text="")
-    root.image_label.place(x=140, y=20)
+    root.image_label.place(relx=0.5, rely=0.15, anchor="center")  # Tengah secara horizontal dan sedikit di atas
 
     add_img = Image.open("assets/add.png")
-    add_img_resized = add_img.resize((30, 30))
+    add_img_resized = add_img.resize((22, 22))
     add_img_tk = ImageTk.PhotoImage(add_img_resized)
 
     # Label-input name
     root.labelname = CTkLabel(root, text="Input name:")
-    root.labelname.place(x=30, y=100)
+    root.labelname.place(relx=0.09, rely=0.30, anchor="w")
 
     root.entryname = CTkEntry(root, width=120, textvariable=namevar)
-    root.entryname.place(x=30, y=130)
+    root.entryname.place(relx=0.09, rely=0.38, anchor="w")
     root.entryname.bind("<Return>", log_data)
 
     root.addButton = CTkButton(root, text='', image=add_img_tk, command=log_data, fg_color='transparent', hover_color="", width=10)
-    root.addButton.place(x=155, y=130)
+    root.addButton.place(relx=0.42, rely=0.38, anchor="w")
 
     # Log Label
     root.logLabel = CTkLabel(root, text="Names:")
-    root.logLabel.place(x=30, y=165)
+    root.logLabel.place(relx=0.09, rely=0.47, anchor="w")
 
-    root.logFrame = st.ScrolledText(root, wrap=tk.WORD, width=18, height=6, font=("Montserrat", 16)) 
-    root.logFrame.place(x=45, y=295)
+    root.logFrame = st.ScrolledText(root, wrap=tk.WORD,  font=("Montserrat", 16)) 
+    root.logFrame.place(relx=0.09, rely=0.68, anchor="w", relwidth=0.45, relheight=0.32,)
     root.logFrame.configure(state ='disabled') 
 
     # Label-input date
     root.labeldays = CTkLabel(root, text="Number of Days:")
-    root.labeldays.place(x=210, y= 100)
+    root.labeldays.place(relx=0.58, rely=0.30, anchor="w")
 
     root.datecomBox = CTkComboBox(root, values=['28', '29', '30', '31'], width=120)
-    root.datecomBox.place(x=210, y=130)
+    root.datecomBox.place(relx=0.58, rely=0.38, anchor="w")
 
     # Label-input first day of the month
     root.labeldays = CTkLabel(root, text="First Day:")
-    root.labeldays.place(x=210, y= 165)
+    root.labeldays.place(relx=0.58, rely=0.47, anchor="w")
 
     root.daycomBox = CTkComboBox(root, values=['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], width=120)
-    root.daycomBox.place(x=210, y=195)
+    root.daycomBox.place(relx=0.58, rely=0.55, anchor="w")
 
     # rules Button
     root.GenerateBTN = CTkButton(root, text="Rules", command='', width=120, fg_color="gray", corner_radius=32)
-    root.GenerateBTN.place(x=210, y=235)
+    root.GenerateBTN.place(relx=0.58, rely=0.71, anchor="w")
 
     # clear Button
     root.GenerateBTN = CTkButton(root, text="Clear", command=clear_data, width=120, fg_color="red", corner_radius=32)
-    root.GenerateBTN.place(x=210, y=268)
+    root.GenerateBTN.place(relx=0.58, rely=0.80, anchor="w")
 
     # generate Button
     root.GenerateBTN = CTkButton(root, text="Generate", command=start_generate_data_thread, width=300, fg_color="green", corner_radius=32)
-    root.GenerateBTN.place(x=30, y=305)
+    root.GenerateBTN.place(relx=0.5, rely=0.92, anchor="center")
 
 # button add name func
 def log_data(event=None):
@@ -129,7 +129,7 @@ def generate_data():
 
             shift_data.append([current_day, day + 1] + day_shift)
 
-        # Buat file CSV
+        # Buat file CSV region
         filename = "shift.csv"
         with open(filename, mode='w', newline='') as file:
             writer = csv.writer(file, delimiter=',')
@@ -163,7 +163,7 @@ root = CTk()
 # Setting ukuran judul
 root.title("Managed Service Shift Generator")
 root.geometry("360x350")
-root.resizable(False, False)
+root.resizable(False, False)  # Biarkan resize agar lebih fleksibel di berbagai resolusi
 set_appearance_mode("light")
 
 # Variable
