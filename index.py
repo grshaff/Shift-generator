@@ -1,4 +1,3 @@
-import csv
 import os
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
@@ -8,25 +7,18 @@ from tkinter import *
 from tkinter import messagebox
 from customtkinter import *
 import tkinter.scrolledtext as st 
-from PIL import ImageTk, Image
-from datetime import datetime
+from PIL import Image, ImageTk, ImageDraw, ImageFont
 import threading  # Import threading
 
 # Fungsi buat GUI  
 def create_widgets():
-    #background
-    bg_image = Image.open("./assets/bg-form-2.png")
-    bg_image_resized = bg_image.resize((400, 390))
-    bg_image_tk = ImageTk.PhotoImage(bg_image_resized)
-    root.bgimage_label = CTkLabel(root, image=bg_image_tk, text="")
-    root.bgimage_label.place(relx=0, rely=0,relwidth=1, relheight=1)
 
     # Logo
     my_image = Image.open("./assets/SMG-logo.png")
     my_image_resized = my_image.resize((103, 67))
     my_image_tk = ImageTk.PhotoImage(my_image_resized)
-    root.image_label = CTkLabel(root, image=my_image_tk, text="")
-    root.image_label.place(relx=0.5, rely=0.15, anchor="center")  # Tengah secara horizontal dan sedikit di atas
+    root.image_label = CTkLabel(root, image=my_image_tk, text="",bg_color='transparent')
+    root.image_label.place(relx=0.5, rely=0.14, anchor="center")  # Tengah secara horizontal dan sedikit di atas
 
     add_img = Image.open("./assets/add.png")
     add_img_resized = add_img.resize((22, 22))
@@ -106,12 +98,6 @@ def start_generate_data_thread():
     thread.start()
 
 # Fungsi untuk generate shift data
-from openpyxl import Workbook
-from openpyxl.styles import PatternFill
-import random
-import os
-from tkinter import messagebox
-
 def generate_data():
     max_days = int(root.datecomBox.get())
     start_day = root.daycomBox.get()
