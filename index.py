@@ -156,11 +156,11 @@ def generate_data():
         # Menambahkan dua baris kosong
         sheet.append([])
         sheet.append([])
+        sheet.append([])
 
-        # Menulis jumlah shift setiap orang
+        # Menulis hasil shift untuk setiap orang dalam format tabel
         for name, shifts in shift_count.items():
-            result_row = f"{name}: Malam = {shifts['Malam']}, Pagi = {shifts['Pagi']}, Sore = {shifts['Sore']}"
-            sheet.append([result_row])
+            sheet.append([name, shifts["Malam"], shifts["Pagi"], shifts["Sore"]])
 
         # Simpan file Excel
         filename = "shift.xlsx"
