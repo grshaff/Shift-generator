@@ -1,6 +1,6 @@
 import os
 from openpyxl import Workbook
-from openpyxl.styles import PatternFill
+from openpyxl.styles import PatternFill, Font, Alignment
 import random
 import tkinter as tk
 from tkinter import *
@@ -8,7 +8,7 @@ from tkinter import messagebox
 from customtkinter import *
 import tkinter.scrolledtext as st 
 from PIL import Image, ImageTk, ImageDraw, ImageFont
-import threading  # Import threading
+import threading
 
 # Fungsi buat GUI  
 def create_widgets():
@@ -116,6 +116,9 @@ def generate_data():
         # Dictionary untuk menghitung jumlah shift
         shift_count = {name: {"Malam": 0, "Pagi": 0, "Sore": 0} for name in inputted_names}
 
+        # Dictionary untuk menghitung shift per minggu
+        weekly_shift_count = {name: {"Malam": [], "Pagi": [], "Sore": []} for name in inputted_names}
+
         for day in range(max_days):
             current_day = week_days[day % len(week_days)]
 
@@ -127,21 +130,29 @@ def generate_data():
             shift_count[day_shift[1]]["Pagi"] += 1
             shift_count[day_shift[2]]["Sore"] += 1
 
+            # Simpan shift per minggu
+            current_week = (day // 7) + 1  # Menghitung minggu keberapa
+            weekly_shift_count[day_shift[0]]["Malam"].append(current_week)
+            weekly_shift_count[day_shift[1]]["Pagi"].append(current_week)
+            weekly_shift_count[day_shift[2]]["Sore"].append(current_week)
+
             shift_data.append([current_day, day + 1] + day_shift)
 
         # Membuat workbook dan worksheet baru
-        workbook = Workbook()
+        global workbook, sheet
+        workbook = Workbook()  # Workbook baru
         sheet = workbook.active
         sheet.title = "Shift Data"
 
         # Menulis header
         sheet.append(["Hari", "Tanggal", "Malam", "Pagi", "Sore"])
+        cell_bold(1,5)
 
         # Warna merah muda untuk hari Sabtu dan Minggu
         pink_fill = PatternFill(start_color="FFC0CB", end_color="FFC0CB", fill_type="solid")
 
-        # Menulis data shift
-        for day_shift in shift_data:
+        # Menulis data shift harian
+        for i, day_shift in enumerate(shift_data):
             day_name = day_shift[0]
             sheet.append(day_shift)
 
@@ -153,10 +164,35 @@ def generate_data():
                 for cell in sheet[last_row]:
                     cell.fill = pink_fill
 
+        # Menambahkan dua baris kosong sebagai pemisah
+        sheet.append([])
+        sheet.append([])
+        sheet.append([""])
+    
+        # Tambahkan teks
+        sheet.append(["Total Shift per-weeks"])
+        merged_center_bold()
+        # Menulis total shift per minggu
+        current_week = 1
+        while current_week <= (max_days // 7) + 1:
+            sheet.append([f"Week {current_week}"])
+            merged_center_bold()
+            sheet.append(["", "Night", "Morning", "Afternoon"])
+
+            for name, shifts in weekly_shift_count.items():
+                night_shifts = shifts["Malam"].count(current_week)
+                morning_shifts = shifts["Pagi"].count(current_week)
+                afternoon_shifts = shifts["Sore"].count(current_week)
+                sheet.append([name, night_shifts, morning_shifts, afternoon_shifts])
+
+            sheet.append([])  # Pemisah antar minggu
+            current_week += 1
+
         # Menambahkan dua baris kosong
         sheet.append([])
-        sheet.append([])
-        sheet.append([])
+        sheet.append(["Total Shift per-month"])  # Tambahkan teks
+        merged_center_bold()
+        sheet.append(["Shifts", "Night", "Morning", "Afternoon"])
 
         # Menulis hasil shift untuk setiap orang dalam format tabel
         for name, shifts in shift_count.items():
@@ -172,8 +208,6 @@ def generate_data():
     else:
         messagebox.showerror("ERROR", "No names to save!")
 
-
-
 def update_font(event):
     # Menghitung ukuran font berdasarkan lebar jendela
     font_size = int(root.winfo_width() / 32)  # Misalnya, ukuran font 1/20 dari lebar jendela
@@ -181,6 +215,27 @@ def update_font(event):
     # Update font untuk semua widget yang sesuai
     root.logFrame.config(font=("Helvetica", font_size))
     root.logFrame.config(font=("Helvetica", font_size))
+
+# Fungsi merged cell dan bold alignment tengah
+def merged_center_bold():
+    bold_font = Font(bold=True)
+    # Dapatkan baris terakhir
+    last_row = sheet.max_row
+
+    # Merge cell dari kolom 1 sampai kolom 4 (misal, menyesuaikan dengan kebutuhan)
+    sheet.merge_cells(start_row=last_row, start_column=1, end_row=last_row, end_column=4)
+
+    # Terapkan gaya bold dan center alignment pada cell
+    merged_cell = sheet.cell(row=last_row, column=1)
+    merged_cell.font = bold_font
+    merged_cell.alignment = Alignment(horizontal="center", vertical="center")
+
+def cell_bold(start_col, end_col):
+    last_row = sheet.max_row
+
+    for col in range(start_col, end_col + 1):  # Gunakan +1 karena range() tidak menyertakan end_col
+        cell = sheet.cell(row=last_row, column=col)
+        cell.font = bold_font
 
 # Buat objek class tk
 root = CTk()
@@ -191,6 +246,9 @@ root.geometry("360x350")
 root.resizable(False, False)  # Biarkan resize agar lebih fleksibel di berbagai resolusi
 set_appearance_mode("light")
 root.bind("<Configure>", update_font)
+
+# Variable Sheets
+bold_font = Font(bold=True)
 
 # Variable
 namevar = StringVar()
