@@ -1,5 +1,7 @@
 import csv
 import os
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill
 import random
 import tkinter as tk
 from tkinter import *
@@ -70,21 +72,21 @@ def create_widgets():
 
 # button add name func
 def log_data(event=None):
-    input_name = root.entryname.get().strip()  # Ambil teks dari entryname dan hapus spasi berlebih
+    input_name = root.entryname.get().strip() 
 
-    if input_name != '':  # Pastikan input tidak kosong
-        if input_name in inputted_names:  # Periksa apakah nama sudah ada di inputted_names
+    if input_name != '':  
+        if input_name in inputted_names:
             messagebox.showerror("ERROR", f"Name '{input_name}' Already inserted!")
         else:
-            # Jika nama belum ada, masukkan ke daftar dan logFrame
             inputted_names.append(input_name)
             root.logFrame.config(state='normal')
-            root.logFrame.insert(tk.END, input_name + '\n')  # Tambahkan nama ke logFrame
+            root.logFrame.insert(tk.END, input_name + '\n') 
             root.logFrame.config(state='disabled')
-            root.entryname.delete(0, tk.END)  # Bersihkan entry field setelah input
+            root.entryname.delete(0, tk.END) 
     else:
         messagebox.showerror("ERROR", "Please input a name!")
 
+# Fungsi clear data
 def clear_data():
     root.logFrame.config(state='normal')
     root.logFrame.delete('1.0', tk.END)
@@ -97,12 +99,16 @@ def start_generate_data_thread():
     thread.start()
 
 # Fungsi untuk generate shift data
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill
+import random
+import os
+from tkinter import messagebox
+
 def generate_data():
-    # Ambil nilai dari combobox
     max_days = int(root.datecomBox.get())
     start_day = root.daycomBox.get()
 
-    # Daftar nama hari dalam urutan yang benar
     days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     start_index = days_of_week.index(start_day)
     week_days = days_of_week[start_index:] + days_of_week[:start_index]
@@ -130,30 +136,49 @@ def generate_data():
 
             shift_data.append([current_day, day + 1] + day_shift)
 
-        # Buat file CSV region
-        filename = "shift.csv"
-        with open(filename, mode='w', newline='') as file:
-            writer = csv.writer(file, delimiter=',')
-            writer.writerow(["Hari", "No", "Malam", "Pagi", "Sore"])
+        # Membuat workbook dan worksheet baru
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Shift Data"
 
-            # Menulis hasil shift ke dalam CSV
-            for day_shift in shift_data:
-                writer.writerow(day_shift)
+        # Menulis header
+        sheet.append(["Hari", "Tanggal", "Malam", "Pagi", "Sore"])
 
-            # Menambahkan dua baris kosong
-            writer.writerow([])
-            writer.writerow([])
+        # Warna merah muda untuk hari Sabtu dan Minggu
+        pink_fill = PatternFill(start_color="FFC0CB", end_color="FFC0CB", fill_type="solid")
 
-            # Menulis jumlah shift setiap orang
-            for name, shifts in shift_count.items():
-                result_row = f"{name}: Malam = {shifts['Malam']}, Pagi = {shifts['Pagi']}, Sore = {shifts['Sore']}"
-                writer.writerow([result_row])
+        # Menulis data shift
+        for day_shift in shift_data:
+            day_name = day_shift[0]
+            sheet.append(day_shift)
 
-        # Buka file CSV secara otomatis
+            # Dapatkan baris terakhir yang baru saja ditambahkan
+            last_row = sheet.max_row
+
+            # Jika hari Sabtu atau Minggu, warnai baris tersebut dengan merah muda
+            if day_name == 'Saturday' or day_name == 'Sunday':
+                for cell in sheet[last_row]:
+                    cell.fill = pink_fill
+
+        # Menambahkan dua baris kosong
+        sheet.append([])
+        sheet.append([])
+
+        # Menulis jumlah shift setiap orang
+        for name, shifts in shift_count.items():
+            result_row = f"{name}: Malam = {shifts['Malam']}, Pagi = {shifts['Pagi']}, Sore = {shifts['Sore']}"
+            sheet.append([result_row])
+
+        # Simpan file Excel
+        filename = "shift.xlsx"
+        workbook.save(filename)
+
+        # Buka file Excel secara otomatis
         os.startfile(filename)
 
     else:
         messagebox.showerror("ERROR", "No names to save!")
+
 
 
 def update_font(event):
