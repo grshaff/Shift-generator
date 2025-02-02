@@ -6,6 +6,8 @@ import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
 from customtkinter import *
+from customtkinter import CTkToplevel
+import customtkinter
 import tkinter.scrolledtext as st 
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import threading
@@ -58,7 +60,7 @@ def create_widgets():
     root.daycomBox.place(relx=0.58, rely=0.55, anchor="w")
 
     # rules Button
-    root.GenerateBTN = CTkButton(root, text="Rules", command='', width=120, fg_color="gray", corner_radius=32)
+    root.GenerateBTN = CTkButton(root, text="Rules", command=top_level_win, width=120, fg_color="gray", corner_radius=32)
     root.GenerateBTN.place(relx=0.58, rely=0.71, anchor="w")
 
     # clear Button
@@ -99,114 +101,117 @@ def start_generate_data_thread():
 
 # Fungsi untuk generate shift data
 def generate_data():
-    max_days = int(root.datecomBox.get())
-    start_day = root.daycomBox.get()
-
-    days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    start_index = days_of_week.index(start_day)
-    week_days = days_of_week[start_index:] + days_of_week[:start_index]
-
-    if inputted_names:
-        # Shuffle sekali sebelum loop untuk efisiensi
-        random.shuffle(inputted_names)
-
-        shift_data = []
-        total_names = len(inputted_names)
-
-        # Dictionary untuk menghitung jumlah shift
-        shift_count = {name: {"Malam": 0, "Pagi": 0, "Sore": 0} for name in inputted_names}
-
-        # Dictionary untuk menghitung shift per minggu
-        weekly_shift_count = {name: {"Malam": [], "Pagi": [], "Sore": []} for name in inputted_names}
-
-        for day in range(max_days):
-            current_day = week_days[day % len(week_days)]
-
-            # Ambil nama secara berurutan tanpa pengacakan tambahan
-            day_shift = [inputted_names[i % total_names] for i in range(day * 3, (day + 1) * 3)]
-
-            # Update shift_count untuk setiap shift
-            shift_count[day_shift[0]]["Malam"] += 1
-            shift_count[day_shift[1]]["Pagi"] += 1
-            shift_count[day_shift[2]]["Sore"] += 1
-
-            # Simpan shift per minggu
-            current_week = (day // 7) + 1  # Menghitung minggu keberapa
-            weekly_shift_count[day_shift[0]]["Malam"].append(current_week)
-            weekly_shift_count[day_shift[1]]["Pagi"].append(current_week)
-            weekly_shift_count[day_shift[2]]["Sore"].append(current_week)
-
-            shift_data.append([current_day, day + 1] + day_shift)
-
-        # Membuat workbook dan worksheet baru
-        global workbook, sheet
-        workbook = Workbook()  # Workbook baru
-        sheet = workbook.active
-        sheet.title = "Shift Data"
-
-        # Menulis header
-        sheet.append(["Hari", "Tanggal", "Malam", "Pagi", "Sore"])
-        cell_bold(1,5)
-
-        # Warna merah muda untuk hari Sabtu dan Minggu
-        pink_fill = PatternFill(start_color="FFC0CB", end_color="FFC0CB", fill_type="solid")
-
-        # Menulis data shift harian
-        for i, day_shift in enumerate(shift_data):
-            day_name = day_shift[0]
-            sheet.append(day_shift)
-
-            # Dapatkan baris terakhir yang baru saja ditambahkan
-            last_row = sheet.max_row
-
-            # Jika hari Sabtu atau Minggu, warnai baris tersebut dengan merah muda
-            if day_name == 'Saturday' or day_name == 'Sunday':
-                for cell in sheet[last_row]:
-                    cell.fill = pink_fill
-
-        # Menambahkan dua baris kosong sebagai pemisah
-        sheet.append([])
-        sheet.append([])
-        sheet.append([""])
-    
-        # Tambahkan teks
-        sheet.append(["Total Shift per-weeks"])
-        merged_center_bold()
-        # Menulis total shift per minggu
-        current_week = 1
-        while current_week <= (max_days // 7) + 1:
-            sheet.append([f"Week {current_week}"])
-            merged_center_bold()
-            sheet.append(["", "Night", "Morning", "Afternoon"])
-
-            for name, shifts in weekly_shift_count.items():
-                night_shifts = shifts["Malam"].count(current_week)
-                morning_shifts = shifts["Pagi"].count(current_week)
-                afternoon_shifts = shifts["Sore"].count(current_week)
-                sheet.append([name, night_shifts, morning_shifts, afternoon_shifts])
-
-            sheet.append([])  # Pemisah antar minggu
-            current_week += 1
-
-        # Menambahkan dua baris kosong
-        sheet.append([])
-        sheet.append(["Total Shift per-month"])  # Tambahkan teks
-        merged_center_bold()
-        sheet.append(["Shifts", "Night", "Morning", "Afternoon"])
-
-        # Menulis hasil shift untuk setiap orang dalam format tabel
-        for name, shifts in shift_count.items():
-            sheet.append([name, shifts["Malam"], shifts["Pagi"], shifts["Sore"]])
-
-        # Simpan file Excel
-        filename = "shift.xlsx"
-        workbook.save(filename)
-
-        # Buka file Excel secara otomatis
-        os.startfile(filename)
-
+    if root.new_window.winfo_exists():
+        messagebox.showerror("WARNING", "Save or close rules first!", parent=root.new_window)
     else:
-        messagebox.showerror("ERROR", "No names to save!")
+        max_days = int(root.datecomBox.get())
+        start_day = root.daycomBox.get()
+
+        days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        start_index = days_of_week.index(start_day)
+        week_days = days_of_week[start_index:] + days_of_week[:start_index]
+
+        if inputted_names:
+            # Shuffle sekali sebelum loop untuk efisiensi
+            random.shuffle(inputted_names)
+
+            shift_data = []
+            total_names = len(inputted_names)
+
+            # Dictionary untuk menghitung jumlah shift
+            shift_count = {name: {"Malam": 0, "Pagi": 0, "Sore": 0} for name in inputted_names}
+
+            # Dictionary untuk menghitung shift per minggu
+            weekly_shift_count = {name: {"Malam": [], "Pagi": [], "Sore": []} for name in inputted_names}
+
+            for day in range(max_days):
+                current_day = week_days[day % len(week_days)]
+
+                # Ambil nama secara berurutan tanpa pengacakan tambahan
+                day_shift = [inputted_names[i % total_names] for i in range(day * 3, (day + 1) * 3)]
+
+                # Update shift_count untuk setiap shift
+                shift_count[day_shift[0]]["Malam"] += 1
+                shift_count[day_shift[1]]["Pagi"] += 1
+                shift_count[day_shift[2]]["Sore"] += 1
+
+                # Simpan shift per minggu
+                current_week = (day // 7) + 1  # Menghitung minggu keberapa
+                weekly_shift_count[day_shift[0]]["Malam"].append(current_week)
+                weekly_shift_count[day_shift[1]]["Pagi"].append(current_week)
+                weekly_shift_count[day_shift[2]]["Sore"].append(current_week)
+
+                shift_data.append([current_day, day + 1] + day_shift)
+
+            # Membuat workbook dan worksheet baru
+            global workbook, sheet
+            workbook = Workbook()  # Workbook baru
+            sheet = workbook.active
+            sheet.title = "Shift Data"
+
+            # Menulis header
+            sheet.append(["Hari", "Tanggal", "Malam", "Pagi", "Sore"])
+            cell_bold(1,5)
+
+            # Warna merah muda untuk hari Sabtu dan Minggu
+            pink_fill = PatternFill(start_color="FFC0CB", end_color="FFC0CB", fill_type="solid")
+
+            # Menulis data shift harian
+            for i, day_shift in enumerate(shift_data):
+                day_name = day_shift[0]
+                sheet.append(day_shift)
+
+                # Dapatkan baris terakhir yang baru saja ditambahkan
+                last_row = sheet.max_row
+
+                # Jika hari Sabtu atau Minggu, warnai baris tersebut dengan merah muda
+                if day_name == 'Saturday' or day_name == 'Sunday':
+                    for cell in sheet[last_row]:
+                        cell.fill = pink_fill
+
+            # Menambahkan dua baris kosong sebagai pemisah
+            sheet.append([])
+            sheet.append([])
+            sheet.append([""])
+        
+            # Tambahkan teks
+            sheet.append(["Total Shift per-weeks"])
+            merged_center_bold()
+            # Menulis total shift per minggu
+            current_week = 1
+            while current_week <= (max_days // 7) + 1:
+                sheet.append([f"Week {current_week}"])
+                merged_center_bold()
+                sheet.append(["", "Night", "Morning", "Afternoon"])
+
+                for name, shifts in weekly_shift_count.items():
+                    night_shifts = shifts["Malam"].count(current_week)
+                    morning_shifts = shifts["Pagi"].count(current_week)
+                    afternoon_shifts = shifts["Sore"].count(current_week)
+                    sheet.append([name, night_shifts, morning_shifts, afternoon_shifts])
+
+                sheet.append([])  # Pemisah antar minggu
+                current_week += 1
+
+            # Menambahkan dua baris kosong
+            sheet.append([])
+            sheet.append(["Total Shift per-month"])  # Tambahkan teks
+            merged_center_bold()
+            sheet.append(["Shifts", "Night", "Morning", "Afternoon"])
+
+            # Menulis hasil shift untuk setiap orang dalam format tabel
+            for name, shifts in shift_count.items():
+                sheet.append([name, shifts["Malam"], shifts["Pagi"], shifts["Sore"]])
+
+            # Simpan file Excel
+            filename = "shift.xlsx"
+            workbook.save(filename)
+
+            # Buka file Excel secara otomatis
+            os.startfile(filename)
+
+        else:
+            messagebox.showerror("ERROR", "No names to save!")
 
 def update_font(event):
     # Menghitung ukuran font berdasarkan lebar jendela
@@ -236,6 +241,31 @@ def cell_bold(start_col, end_col):
     for col in range(start_col, end_col + 1):  # Gunakan +1 karena range() tidak menyertakan end_col
         cell = sheet.cell(row=last_row, column=col)
         cell.font = bold_font
+
+
+# Window popup rules
+def top_level_win():
+    # Cek jika jendela baru sudah ada, jika belum, buat yang baru
+    if not hasattr(root, 'new_window') or not root.new_window.winfo_exists():
+        root.new_window = CTkToplevel(root)
+        root.new_window.title("Rules Configuration")
+        root.new_window.resizable(False, False)
+        root.new_window.geometry("400x300")
+        root.new_window.attributes("-topmost", True)
+
+        # Fokus ke jendela baru
+        root.new_window.focus()
+        
+        # Tambahkan label ke jendela baru
+        root.label = CTk.CTkLabel(root.new_window, text="ToplevelWindow")
+        root.label.pack(padx=20, pady=20)
+    else:
+        # Jika jendela sudah ada, fokus ke jendela tersebut
+        root.new_window.focus()
+
+        
+
+
 
 # Buat objek class tk
 root = CTk()
