@@ -1,4 +1,5 @@
 import os
+import re
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment
 import random
@@ -45,8 +46,8 @@ def create_widgets():
     root.logFrame.configure(state ='disabled') 
 
     # Label-input date
-    root.labeldays = CTkLabel(root, text="Number of Days:")
-    root.labeldays.place(relx=0.58, rely=0.30, anchor="w")
+    root.labeldate = CTkLabel(root, text="Number of Days:")
+    root.labeldate.place(relx=0.58, rely=0.30, anchor="w")
 
     root.datecomBox = CTkComboBox(root, values=['28', '29', '30', '31'], width=120)
     root.datecomBox.place(relx=0.58, rely=0.38, anchor="w")
@@ -100,6 +101,7 @@ def start_generate_data_thread():
 
 # Fungsi untuk generate shift data
 def generate_data():
+    global max_days
     if root.new_window.winfo_exists():
         messagebox.showerror("WARNING", "Save or close rules first!", parent=root.new_window)
     else:
@@ -241,10 +243,62 @@ def cell_bold(start_col, end_col):
         cell = sheet.cell(row=last_row, column=col)
         cell.font = bold_font
 
+# Fungsi untuk memvalidasi input hanya angka antara 1 hingga 31
+def validate_day_input(event, entry_widget):
+    # Ambil teks yang dimasukkan di entry
+    max_days1 = root.datecomBox.get()
+    user_input = entry_widget.get()
+
+    # Cek jika input adalah angka dan berada di dalam rentang 1 hingga 31
+    if re.match("^[0-9]{1,2}$", user_input):  # Hanya angka 1-2 digit
+        if 1 <= int(user_input) <= int(max_days1):
+            pass  # Input valid, tidak ada perubahan
+        else:
+            entry_widget.delete(0, "end")  # Hapus input jika tidak dalam rentang 1-31
+            messagebox.showerror("WARNING", "Please input a valid date! \n (Maximum number of days selected: "+max_days1+")", parent=root.new_window)
+
+    else:
+        entry_widget.delete(0, "end")  # Hapus input jika bukan angka yang valid
+        messagebox.showerror("WARNING", "Input must be numbers!", parent=root.new_window)
+
+# Fungsi untuk menambahkan entry Day-X berdasarkan jumlah annual leaves
+def update_annual_days(spinbox, row, col_start, index, max_columns=3):
+    # Menghapus entry atau label yang ada sebelumnya
+    for widget in root.my_frame.winfo_children():
+        if hasattr(widget, "is_day_widget") and widget.is_day_widget and widget.index == index:  # Cek widget yang berhubungan dengan Day-X
+            widget.grid_forget()
+
+    # Ambil nilai dari spinbox
+    total_days = int(spinbox.get())
+
+    # Tampilkan label "Day-X" dan entry untuk setiap hari sesuai jumlah yang dipilih
+    current_col = 1  # Mulai dari kolom yang diberikan
+    current_row = row  # Mulai dari baris yang diberikan
+
+    for day_index in range(1, total_days + 1):
+        # Label Day-X
+        day_label = CTkLabel(root.my_frame, text=f"Day-{day_index}")
+        day_label.is_day_widget = True  # Menandai widget sebagai Day-X
+        day_label.index = index  # Menyimpan index untuk mengidentifikasi widget
+        day_label.grid(row=current_row, column=current_col, sticky="w")
+
+        # Entry untuk tanggal
+        day_entry = CTkEntry(root.my_frame, width=35)
+        day_entry.is_day_widget = True  # Menandai widget sebagai Day-X
+        day_entry.index = index  # Menyimpan index untuk mengidentifikasi widget
+        day_entry.grid(row=current_row, column=current_col + 1, sticky="w")
+        day_entry.bind("<KeyRelease>", lambda event, entry_widget=day_entry: validate_day_input(event, entry_widget))
+
+        # Move to the next column, and check if it exceeds max_columns
+        current_col += 2  # Skip 2 columns, one for label and one for entry
+
+        # If we reach the max_columns, move to the next row
+        if current_col >= max_columns * 2:  # 2 columns per set (label and entry)
+            current_col = col_start  # Reset to the start column
+            current_row += 1  # Move to the next row
 
 # Window popup rules
 def top_level_win():
-
     # Cek jika jendela baru sudah ada, jika belum, buat yang baru
     if not hasattr(root, 'new_window') or not root.new_window.winfo_exists():
         root.new_window = CTkToplevel(root)
@@ -257,19 +311,23 @@ def top_level_win():
         root.my_frame = CTkScrollableFrame(root.new_window, width=400, height=250)
         root.my_frame.pack()
 
-        # widget frame
+        # widget frame untuk setiap nama
         for index, name in enumerate(inputted_names):
             # Display the name in a row
             root.namelabel = CTkLabel(root.my_frame, text=name, bg_color='grey', width=400)
-            root.namelabel.grid(row=index*2, column=0, pady=5, sticky="w")
+            root.namelabel.grid(row=index*6, columnspan=30, pady=5, sticky="w")
 
-            # Label for annual leaves below the name
+            # Label untuk annual leaves di bawah nama
             root.annuallabel = CTkLabel(root.my_frame, text="Annual leaves:")
-            root.annuallabel.grid(row=index*2+1, column=0, pady=5, sticky="w")
+            root.annuallabel.grid(row=index*6+1, column=0, pady=5, sticky="w")
 
-            # Spinbox for setting total annual leaves
+            # Spinbox untuk memasukkan total annual leaves
             root.totalleaves = Spinbox(root.my_frame, from_=0, to=5, width=2)
-            root.totalleaves.grid(row=index*2+1, padx=85, pady=5, sticky="w")
+            root.totalleaves.grid(row=index*6+1, column=1, pady=5, sticky="w")
+
+            # Menambahkan event listener untuk perubahan pada spinbox
+            root.totalleaves.bind("<KeyRelease>", lambda event, s=root.totalleaves, r=index*6+2, c=2, i=index: update_annual_days(s, r, c, i))
+            root.totalleaves.bind("<ButtonRelease>", lambda event, s=root.totalleaves, r=index*6+2, c=2, i=index: update_annual_days(s, r, c, i))
 
         # save Button
         root.saveBTN = CTkButton(root.new_window, text="Save", command='', width=195, fg_color="green", corner_radius=32)
@@ -281,10 +339,6 @@ def top_level_win():
 
         # Fokus ke jendela baru
         root.new_window.focus()
-        
-        # Tambahkan label ke jendela baru
-        root.label = CTk.CTkLabel(root.new_window, text="ToplevelWindow")
-        root.label.pack(padx=20, pady=20)
     else:
         # Jika jendela sudah ada, fokus ke jendela tersebut
         root.new_window.focus()
