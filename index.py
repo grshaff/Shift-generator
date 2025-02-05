@@ -14,7 +14,6 @@ import threading
 
 # Fungsi buat GUI  
 def create_widgets():
-
     # Logo
     my_image = Image.open("./assets/SMG-logo.png")
     my_image_resized = my_image.resize((103, 67))
@@ -258,14 +257,27 @@ def top_level_win():
         root.my_frame = CTkScrollableFrame(root.new_window, width=400, height=250)
         root.my_frame.pack()
 
-        # rules Button
-        root.GenerateBTN = CTkButton(root.new_window, text="Save", command='', width=195, fg_color="green", corner_radius=32)
-        root.GenerateBTN.pack(side = LEFT, expand=TRUE)
+        # widget frame
+        for index, name in enumerate(inputted_names):
+            # Display the name in a row
+            root.namelabel = CTkLabel(root.my_frame, text=name, bg_color='grey', width=400)
+            root.namelabel.grid(row=index*2, column=0, pady=5, sticky="w")
 
-        # clear Button
-        root.GenerateBTN = CTkButton(root.new_window, text="Cancel", command='', width=195, fg_color="red", corner_radius=32)
-        root.GenerateBTN.pack(side = LEFT, expand=TRUE)
+            # Label for annual leaves below the name
+            root.annuallabel = CTkLabel(root.my_frame, text="Annual leaves:")
+            root.annuallabel.grid(row=index*2+1, column=0, pady=5, sticky="w")
 
+            # Spinbox for setting total annual leaves
+            root.totalleaves = Spinbox(root.my_frame, from_=0, to=5, width=2)
+            root.totalleaves.grid(row=index*2+1, padx=85, pady=5, sticky="w")
+
+        # save Button
+        root.saveBTN = CTkButton(root.new_window, text="Save", command='', width=195, fg_color="green", corner_radius=32)
+        root.saveBTN.pack(side = LEFT, expand=TRUE)
+
+        # cancel Button
+        root.cancelBTN = CTkButton(root.new_window, text="Cancel", command='', width=195, fg_color="red", corner_radius=32)
+        root.cancelBTN.pack(side = LEFT, expand=TRUE)
 
         # Fokus ke jendela baru
         root.new_window.focus()
