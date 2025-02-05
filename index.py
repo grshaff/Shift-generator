@@ -8,9 +8,8 @@ from tkinter import *
 from tkinter import messagebox
 from customtkinter import *
 from customtkinter import CTkToplevel
-import customtkinter
 import tkinter.scrolledtext as st 
-from PIL import Image, ImageTk, ImageDraw, ImageFont
+from PIL import Image, ImageTk
 import threading
 
 # Fungsi buat GUI  
@@ -216,7 +215,7 @@ def generate_data():
 
 def update_font(event):
     # Menghitung ukuran font berdasarkan lebar jendela
-    font_size = int(root.winfo_width() / 32)  # Misalnya, ukuran font 1/20 dari lebar jendela
+    font_size = int(root.winfo_width() / 32) 
 
     # Update font untuk semua widget yang sesuai
     root.logFrame.config(font=("Helvetica", font_size))
@@ -342,10 +341,6 @@ def top_level_win():
     else:
         # Jika jendela sudah ada, fokus ke jendela tersebut
         root.new_window.focus()
-
-        
-
-
 
 # Buat objek class tk
 root = CTk()
