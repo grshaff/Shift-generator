@@ -60,12 +60,12 @@ def create_widgets():
     root.daycomBox.place(relx=0.58, rely=0.55, anchor="w")
 
     # rules Button
-    root.GenerateBTN = CTkButton(root, text="Rules", command=top_level_win, width=120, fg_color="gray", corner_radius=32)
-    root.GenerateBTN.place(relx=0.58, rely=0.71, anchor="w")
+    root.rulesBTN = CTkButton(root, text="Rules", command=top_level_win, width=120, fg_color="gray", corner_radius=32)
+    root.rulesBTN.place(relx=0.58, rely=0.71, anchor="w")
 
     # clear Button
-    root.GenerateBTN = CTkButton(root, text="Clear", command=clear_data, width=120, fg_color="red", corner_radius=32)
-    root.GenerateBTN.place(relx=0.58, rely=0.80, anchor="w")
+    root.clearBTN = CTkButton(root, text="Clear", command=clear_data, width=120, fg_color="red", corner_radius=32)
+    root.clearBTN.place(relx=0.58, rely=0.80, anchor="w")
 
     # generate Button
     root.GenerateBTN = CTkButton(root, text="Generate", command=start_generate_data_thread, width=300, fg_color="green", corner_radius=32)
@@ -245,6 +245,7 @@ def cell_bold(start_col, end_col):
 
 # Window popup rules
 def top_level_win():
+
     # Cek jika jendela baru sudah ada, jika belum, buat yang baru
     if not hasattr(root, 'new_window') or not root.new_window.winfo_exists():
         root.new_window = CTkToplevel(root)
@@ -252,6 +253,19 @@ def top_level_win():
         root.new_window.resizable(False, False)
         root.new_window.geometry("400x300")
         root.new_window.attributes("-topmost", True)
+
+        # frame scrollable
+        root.my_frame = CTkScrollableFrame(root.new_window, width=400, height=250)
+        root.my_frame.pack()
+
+        # rules Button
+        root.GenerateBTN = CTkButton(root.new_window, text="Save", command='', width=195, fg_color="green", corner_radius=32)
+        root.GenerateBTN.pack(side = LEFT, expand=TRUE)
+
+        # clear Button
+        root.GenerateBTN = CTkButton(root.new_window, text="Cancel", command='', width=195, fg_color="red", corner_radius=32)
+        root.GenerateBTN.pack(side = LEFT, expand=TRUE)
+
 
         # Fokus ke jendela baru
         root.new_window.focus()
