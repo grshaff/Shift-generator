@@ -102,7 +102,7 @@ def start_generate_data_thread():
 # Fungsi untuk generate shift data
 def generate_data():
     global max_days
-    if root.new_window.winfo_exists():
+    if hasattr(root, 'new_window') and root.new_window.winfo_exists():
         messagebox.showerror("WARNING", "Save or close rules first!", parent=root.new_window)
 
     else:
@@ -287,31 +287,16 @@ def save_button():
 
     # Loop melalui setiap nama yang di-input
     for index, name in enumerate(inputted_names):
-        # Ambil nilai dari spinbox untuk annual leaves
-        total_leaves = int(root.totalleaves.get())
+        # Ambil nilai dari entry untuk total days dalam format 14;15 atau 13
+        total_leaves_input = root.totalleaves[name].get()  # Mengambil nilai dari CTkEntry yang sesuai dengan nama
         
-        # List untuk menyimpan tanggal dari setiap Day-X
-        day_entries = []
-
-        # Counter untuk membatasi maksimal 5 Day-X entries
-        day_count = 0
-        max_days = 5  # Jumlah maksimal day entries yang diperbolehkan
-
-        # Loop untuk mengambil setiap Day-X entry
-        for widget in root.my_frame.winfo_children():
-            if hasattr(widget, "is_day_widget") and widget.is_day_widget and widget.index == index:
-                if isinstance(widget, CTkEntry):
-                    day_entries.append(widget.get())  # Ambil nilai dari entry
-                    day_count += 1  # Tambahkan counter untuk jumlah Day-X yang diambil
-
-                # Jika sudah mencapai batas maksimal, hentikan pengambilan entri
-                if day_count >= max_days:
-                    break  # Keluar dari loop jika sudah mencapai 5 entries
-            
+        # Pisahkan input berdasarkan pemisah ';' untuk menghasilkan list day_entries
+        day_entries = total_leaves_input.split(';')  # Split input menjadi list berdasarkan ';'
+        total_days = len(day_entries)
         # Simpan data ke dalam dictionary dengan nama sebagai kunci
         saved_data[name] = {
-            "total_leaves": total_leaves,
-            "days": day_entries[:max_days]  # Simpan hanya maksimal 5 entri Day-X
+            "total_leaves": total_days,  # Menyimpan total hari dalam format string
+            "days": day_entries  # Simpan list day_entries yang dipecah
         }
 
     # Cetak data yang tersimpan untuk memastikan
@@ -322,12 +307,6 @@ def save_button():
     root.new_window.destroy()
 
 
-    # Cetak data yang tersimpan untuk memastikan
-    print("Data yang disimpan:", saved_data)
-
-    # Setelah menyimpan, Anda bisa menambahkan logika untuk menyimpan data ke database, file, dsb.
-    messagebox.showinfo("Success", "Data successfully saved!", parent=root.new_window)
-    root.new_window.destroy()
 
 # Window popup rules
 def top_level_win():
@@ -347,6 +326,8 @@ def top_level_win():
             root.my_frame = CTkScrollableFrame(root.new_window, width=400, height=250)
             root.my_frame.pack()
 
+            root.totalleaves = {}
+            
             # widget frame untuk setiap nama
             for index, name in enumerate(inputted_names):
                 # Display the name in a row
@@ -357,10 +338,12 @@ def top_level_win():
                 root.annuallabel = CTkLabel(root.my_frame, text="Annual leaves:")
                 root.annuallabel.grid(row=index*6+1, column=0, pady=5, sticky="w")
 
-                # Spinbox untuk memasukkan total annual leaves
-                root.totalleaves = CTkEntry(root.my_frame, width=100)
-                root.totalleaves.grid(row=index*6+1, column=1, pady=5, sticky="w")
-                root.totalleaves.bind("<KeyRelease>", lambda event, entry_widget=root.totalleaves: validate_day_input(event, entry_widget))
+                # Spinbox atau CTkEntry untuk memasukkan total annual leaves
+                root.totalleaves[name] = CTkEntry(root.my_frame, width=100)  # Simpan widget ke dictionary
+                root.totalleaves[name].grid(row=index*6+1, column=1, pady=5, sticky="w")
+                
+                # Bind untuk memvalidasi input agar hanya angka
+                root.totalleaves[name].bind("<KeyRelease>", lambda event, entry_widget=root.totalleaves[name]: validate_day_input(event, entry_widget))
 
             # save Button
             root.saveBTN = CTkButton(root.new_window, text="Save", command=save_button, width=195, fg_color="green", corner_radius=32)
