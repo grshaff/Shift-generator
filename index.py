@@ -107,7 +107,9 @@ def generate_data():
         with_rulescuti()
 
 
-# Fungsi dengan aturan cuti
+import random
+
+# Fungsi dengan aturan cuti yang lebih adil
 def with_rulescuti():
     global max_days
     if hasattr(root, 'new_window') and root.new_window.winfo_exists():
@@ -127,6 +129,10 @@ def with_rulescuti():
             # Dictionary untuk menghitung jumlah shift
             shift_count = {name: {"Malam": 0, "Pagi": 0, "Sore": 0} for name in inputted_names}
             weekly_shift_count = {name: {"Malam": [], "Pagi": [], "Sore": []} for name in inputted_names}
+
+            # Hitung total shift yang dibutuhkan per orang
+            total_shift_count = {name: 0 for name in inputted_names}
+            total_shift_per_person = max_days * 3 // total_names  # Jumlah shift rata-rata per orang
 
             # Loop untuk setiap hari
             for day in range(max_days):
@@ -148,14 +154,26 @@ def with_rulescuti():
                     while len(available_names) < 3:
                         available_names.append(additional_names.pop(0))
 
-                # Ambil nama secara acak dari daftar yang tersedia
-                random.shuffle(available_names)
+                # Pastikan ada cukup orang yang tersedia, jika tidak, ambil beberapa orang dengan lebih dari satu shift
+                if len(available_names) < 3:
+                    messagebox.showerror("ERROR", f"Not enough people available for day {current_day} ({day + 1}). Please check availability and leaves.")
+                    return
+
+                # Urutkan orang berdasarkan jumlah total shift yang sudah dimiliki
+                available_names.sort(key=lambda name: total_shift_count[name])
+
+                # Pilih 3 orang untuk shift hari tersebut secara merata
                 day_shift = available_names[:3]
 
                 # Update shift_count untuk setiap shift
                 shift_count[day_shift[0]]["Malam"] += 1
                 shift_count[day_shift[1]]["Pagi"] += 1
                 shift_count[day_shift[2]]["Sore"] += 1
+
+                # Update total shift per orang
+                total_shift_count[day_shift[0]] += 1
+                total_shift_count[day_shift[1]] += 1
+                total_shift_count[day_shift[2]] += 1
 
                 # Simpan shift per minggu
                 current_week = (day // 7) + 1
@@ -225,11 +243,12 @@ def with_rulescuti():
             sheet.append([])
             sheet.append(["Total Shift per-month"])  # Tambahkan teks
             merged_center_bold()
-            sheet.append(["Shifts", "Night", "Morning", "Afternoon"])
+            sheet.append(["Shifts", "Night", "Morning", "Afternoon","Total"])
 
             # Menulis hasil shift untuk setiap orang dalam format tabel
             for name, shifts in shift_count.items():
-                sheet.append([name, shifts["Malam"], shifts["Pagi"], shifts["Sore"]])
+                total_shifts = shifts["Malam"] + shifts["Pagi"] + shifts["Sore"]
+                sheet.append([name, shifts["Malam"], shifts["Pagi"], shifts["Sore"], total_shifts])
 
             # Simpan file Excel
             filename = "shift.xlsx"
@@ -240,6 +259,7 @@ def with_rulescuti():
 
         else:
             messagebox.showerror("ERROR", "No names to save!")
+
 
 
 # Fungsi tanpa aturan cuti
