@@ -104,6 +104,7 @@ def generate_data():
     global max_days
     if root.new_window.winfo_exists():
         messagebox.showerror("WARNING", "Save or close rules first!", parent=root.new_window)
+
     else:
         max_days = int(root.datecomBox.get())
         start_day = root.daycomBox.get()
@@ -244,9 +245,6 @@ def cell_bold(start_col, end_col):
         cell.font = bold_font
 
 # Fungsi untuk memvalidasi input hanya angka antara 1 hingga 31
-import re
-from tkinter import messagebox
-
 import re
 from tkinter import messagebox
 
