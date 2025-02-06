@@ -92,6 +92,7 @@ def clear_data():
     root.logFrame.delete('1.0', tk.END)
     root.logFrame.config(state='disabled')
     inputted_names.clear()
+    saved_data.clear()
 
 # Fungsi untuk memulai thread untuk generate data
 def start_generate_data_thread():
@@ -243,62 +244,92 @@ def cell_bold(start_col, end_col):
         cell.font = bold_font
 
 # Fungsi untuk memvalidasi input hanya angka antara 1 hingga 31
+import re
+from tkinter import messagebox
+
+import re
+from tkinter import messagebox
+
 def validate_day_input(event, entry_widget):
     # Ambil teks yang dimasukkan di entry
-    max_days1 = root.datecomBox.get()
+    max_days1 = int(root.datecomBox.get())  # Ambil nilai max days dari combobox
     user_input = entry_widget.get()
 
-    # Cek jika input adalah angka dan berada di dalam rentang 1 hingga 31
-    if re.match("^[0-9]{1,2}$", user_input):  # Hanya angka 1-2 digit
-        if 1 <= int(user_input) <= int(max_days1):
-            pass  # Input valid, tidak ada perubahan
-        else:
-            entry_widget.delete(0, "end")  # Hapus input jika tidak dalam rentang 1-31
-            messagebox.showerror("WARNING", "Please input a valid date! \n (Maximum number of days selected: "+max_days1+")", parent=root.new_window)
+    # Mengizinkan backspace, tab, dan enter untuk tidak memvalidasi
+    if event.keysym in ['BackSpace', 'Tab', 'Return']:
+        return
 
+    # Memeriksa jika input valid: angka 1-2 digit yang dipisahkan oleh semicolon, termasuk input sementara seperti '12;'
+    if re.match(r"^([0-9]{1,2})(;[0-9]{1,2})*;?$", user_input):  # Memeriksa pola angka-angka yang dipisahkan oleh ;, termasuk yang diakhiri ;
+        # Pisahkan input berdasarkan semicolon, abaikan jika kosong terakhir
+        days = [day for day in user_input.split(';') if day]
+
+        # Validasi setiap angka dalam list days
+        for day in days:
+            if not (1 <= int(day) <= max_days1):  # Pastikan setiap angka berada dalam rentang yang valid
+                entry_widget.delete(0, "end")
+                messagebox.showerror("WARNING", f"Invalid date {day}! Please input a valid date between 1 and {max_days1}.", parent=root.new_window)
+                return
+        # Input valid, biarkan tetap ada
+        pass
     else:
-        entry_widget.delete(0, "end")  # Hapus input jika bukan angka yang valid
-        messagebox.showerror("WARNING", "Input must be numbers!", parent=root.new_window)
+        # Hapus input jika format tidak valid
+        entry_widget.delete(0, "end")
+        messagebox.showerror("WARNING", f"Input must be numbers between 1 and {max_days1}, separated by semicolons (;).", parent=root.new_window)
 
-# Fungsi untuk menambahkan entry Day-X berdasarkan jumlah annual leaves
-def update_annual_days(spinbox, row, col_start, index, max_columns=3):
-    # Menghapus entry atau label yang ada sebelumnya
-    for widget in root.my_frame.winfo_children():
-        if hasattr(widget, "is_day_widget") and widget.is_day_widget and widget.index == index:  # Cek widget yang berhubungan dengan Day-X
-            widget.grid_forget()
 
-    # Ambil nilai dari spinbox
-    total_days = int(spinbox.get())
 
-    # Tampilkan label "Day-X" dan entry untuk setiap hari sesuai jumlah yang dipilih
-    current_col = 1  # Mulai dari kolom yang diberikan
-    current_row = row  # Mulai dari baris yang diberikan
+def cancel_button():
+    root.new_window.destroy()
 
-    # Maksimum jumlah hari yang diizinkan
-    max_days = 5
+def save_button():
+    # Dictionary untuk menyimpan data yang di-input
+    global saved_data
+    saved_data = {}
 
-    # Loop hanya sampai day-5
-    for day_index in range (min(total_days, max_days)):
-        # Label Day-X
-        day_label = CTkLabel(root.my_frame, text=f"Day-{day_index+1}")
-        day_label.is_day_widget = True
-        day_label.index = index
-        day_label.grid(row=current_row, column=current_col, sticky="w")
+    # Loop melalui setiap nama yang di-input
+    for index, name in enumerate(inputted_names):
+        # Ambil nilai dari spinbox untuk annual leaves
+        total_leaves = int(root.totalleaves.get())
+        
+        # List untuk menyimpan tanggal dari setiap Day-X
+        day_entries = []
 
-        # Entry untuk tanggal
-        day_entry = CTkEntry(root.my_frame, width=35)
-        day_entry.is_day_widget = True  # Menandai widget sebagai Day-X
-        day_entry.index = index  # Menyimpan index untuk mengidentifikasi widget
-        day_entry.grid(row=current_row, column=current_col + 1, sticky="w")
-        day_entry.bind("<KeyRelease>", lambda event, entry_widget=day_entry: validate_day_input(event, entry_widget))
+        # Counter untuk membatasi maksimal 5 Day-X entries
+        day_count = 0
+        max_days = 5  # Jumlah maksimal day entries yang diperbolehkan
 
-        # Pindah ke kolom berikutnya dan cek apakah melebihi max_columns
-        current_col += 2  # Skip 2 columns, one for label and one for entry
+        # Loop untuk mengambil setiap Day-X entry
+        for widget in root.my_frame.winfo_children():
+            if hasattr(widget, "is_day_widget") and widget.is_day_widget and widget.index == index:
+                if isinstance(widget, CTkEntry):
+                    day_entries.append(widget.get())  # Ambil nilai dari entry
+                    day_count += 1  # Tambahkan counter untuk jumlah Day-X yang diambil
 
-        # Jika kolom mencapai batas max_columns, pindah ke baris berikutnya
-        if current_col >= max_columns * 2:  # 2 kolom per set (label dan entry)
-            current_col = col_start  # Kembali ke kolom awal
-            current_row += 1  # Pindah ke baris berikutnya
+                # Jika sudah mencapai batas maksimal, hentikan pengambilan entri
+                if day_count >= max_days:
+                    break  # Keluar dari loop jika sudah mencapai 5 entries
+            
+        # Simpan data ke dalam dictionary dengan nama sebagai kunci
+        saved_data[name] = {
+            "total_leaves": total_leaves,
+            "days": day_entries[:max_days]  # Simpan hanya maksimal 5 entri Day-X
+        }
+
+    # Cetak data yang tersimpan untuk memastikan
+    print("Data yang disimpan:", saved_data)
+
+    # Setelah menyimpan, Anda bisa menambahkan logika untuk menyimpan data ke database, file, dsb.
+    messagebox.showinfo("Success", "Data successfully saved!", parent=root.new_window)
+    root.new_window.destroy()
+
+
+    # Cetak data yang tersimpan untuk memastikan
+    print("Data yang disimpan:", saved_data)
+
+    # Setelah menyimpan, Anda bisa menambahkan logika untuk menyimpan data ke database, file, dsb.
+    messagebox.showinfo("Success", "Data successfully saved!", parent=root.new_window)
+    root.new_window.destroy()
 
 # Window popup rules
 def top_level_win():
@@ -329,19 +360,16 @@ def top_level_win():
                 root.annuallabel.grid(row=index*6+1, column=0, pady=5, sticky="w")
 
                 # Spinbox untuk memasukkan total annual leaves
-                root.totalleaves = Spinbox(root.my_frame, from_=0, to=5, width=2)
+                root.totalleaves = CTkEntry(root.my_frame, width=100)
                 root.totalleaves.grid(row=index*6+1, column=1, pady=5, sticky="w")
-
-                # Menambahkan event listener untuk perubahan pada spinbox
-                root.totalleaves.bind("<KeyRelease>", lambda event, s=root.totalleaves, r=index*6+2, c=2, i=index: update_annual_days(s, r, c, i))
-                root.totalleaves.bind("<ButtonRelease>", lambda event, s=root.totalleaves, r=index*6+2, c=2, i=index: update_annual_days(s, r, c, i))
+                root.totalleaves.bind("<KeyRelease>", lambda event, entry_widget=root.totalleaves: validate_day_input(event, entry_widget))
 
             # save Button
-            root.saveBTN = CTkButton(root.new_window, text="Save", command='', width=195, fg_color="green", corner_radius=32)
+            root.saveBTN = CTkButton(root.new_window, text="Save", command=save_button, width=195, fg_color="green", corner_radius=32)
             root.saveBTN.pack(side = LEFT, expand=TRUE)
 
             # cancel Button
-            root.cancelBTN = CTkButton(root.new_window, text="Cancel", command='', width=195, fg_color="red", corner_radius=32)
+            root.cancelBTN = CTkButton(root.new_window, text="Cancel", command=cancel_button, width=195, fg_color="red", corner_radius=32)
             root.cancelBTN.pack(side = LEFT, expand=TRUE)
 
             # Fokus ke jendela baru
