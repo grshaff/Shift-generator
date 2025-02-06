@@ -274,11 +274,15 @@ def update_annual_days(spinbox, row, col_start, index, max_columns=3):
     current_col = 1  # Mulai dari kolom yang diberikan
     current_row = row  # Mulai dari baris yang diberikan
 
-    for day_index in range(1, total_days + 1):
+    # Maksimum jumlah hari yang diizinkan
+    max_days = 5
+
+    # Loop hanya sampai day-5
+    for day_index in range (min(total_days, max_days)):
         # Label Day-X
-        day_label = CTkLabel(root.my_frame, text=f"Day-{day_index}")
-        day_label.is_day_widget = True  # Menandai widget sebagai Day-X
-        day_label.index = index  # Menyimpan index untuk mengidentifikasi widget
+        day_label = CTkLabel(root.my_frame, text=f"Day-{day_index+1}")
+        day_label.is_day_widget = True
+        day_label.index = index
         day_label.grid(row=current_row, column=current_col, sticky="w")
 
         # Entry untuk tanggal
@@ -288,59 +292,63 @@ def update_annual_days(spinbox, row, col_start, index, max_columns=3):
         day_entry.grid(row=current_row, column=current_col + 1, sticky="w")
         day_entry.bind("<KeyRelease>", lambda event, entry_widget=day_entry: validate_day_input(event, entry_widget))
 
-        # Move to the next column, and check if it exceeds max_columns
+        # Pindah ke kolom berikutnya dan cek apakah melebihi max_columns
         current_col += 2  # Skip 2 columns, one for label and one for entry
 
-        # If we reach the max_columns, move to the next row
-        if current_col >= max_columns * 2:  # 2 columns per set (label and entry)
-            current_col = col_start  # Reset to the start column
-            current_row += 1  # Move to the next row
+        # Jika kolom mencapai batas max_columns, pindah ke baris berikutnya
+        if current_col >= max_columns * 2:  # 2 kolom per set (label dan entry)
+            current_col = col_start  # Kembali ke kolom awal
+            current_row += 1  # Pindah ke baris berikutnya
 
 # Window popup rules
 def top_level_win():
-    # Cek jika jendela baru sudah ada, jika belum, buat yang baru
-    if not hasattr(root, 'new_window') or not root.new_window.winfo_exists():
-        root.new_window = CTkToplevel(root)
-        root.new_window.title("Rules Configuration")
-        root.new_window.resizable(False, False)
-        root.new_window.geometry("400x300")
-        root.new_window.attributes("-topmost", True)
+    text_content = root.logFrame.get("1.0", END).strip()
+    if not text_content:
+        messagebox.showerror("WARNING", "Input names first!", parent=root)
+    else: 
+        # Cek jika jendela baru sudah ada, jika belum, buat yang baru
+        if not hasattr(root, 'new_window') or not root.new_window.winfo_exists():
+            root.new_window = CTkToplevel(root)
+            root.new_window.title("Rules Configuration")
+            root.new_window.resizable(False, False)
+            root.new_window.geometry("400x300")
+            root.new_window.attributes("-topmost", True)
 
-        # frame scrollable
-        root.my_frame = CTkScrollableFrame(root.new_window, width=400, height=250)
-        root.my_frame.pack()
+            # frame scrollable
+            root.my_frame = CTkScrollableFrame(root.new_window, width=400, height=250)
+            root.my_frame.pack()
 
-        # widget frame untuk setiap nama
-        for index, name in enumerate(inputted_names):
-            # Display the name in a row
-            root.namelabel = CTkLabel(root.my_frame, text=name, bg_color='grey', width=400)
-            root.namelabel.grid(row=index*6, columnspan=30, pady=5, sticky="w")
+            # widget frame untuk setiap nama
+            for index, name in enumerate(inputted_names):
+                # Display the name in a row
+                root.namelabel = CTkLabel(root.my_frame, text=name, bg_color='grey', width=400)
+                root.namelabel.grid(row=index*6, columnspan=30, pady=5, sticky="w")
 
-            # Label untuk annual leaves di bawah nama
-            root.annuallabel = CTkLabel(root.my_frame, text="Annual leaves:")
-            root.annuallabel.grid(row=index*6+1, column=0, pady=5, sticky="w")
+                # Label untuk annual leaves di bawah nama
+                root.annuallabel = CTkLabel(root.my_frame, text="Annual leaves:")
+                root.annuallabel.grid(row=index*6+1, column=0, pady=5, sticky="w")
 
-            # Spinbox untuk memasukkan total annual leaves
-            root.totalleaves = Spinbox(root.my_frame, from_=0, to=5, width=2)
-            root.totalleaves.grid(row=index*6+1, column=1, pady=5, sticky="w")
+                # Spinbox untuk memasukkan total annual leaves
+                root.totalleaves = Spinbox(root.my_frame, from_=0, to=5, width=2)
+                root.totalleaves.grid(row=index*6+1, column=1, pady=5, sticky="w")
 
-            # Menambahkan event listener untuk perubahan pada spinbox
-            root.totalleaves.bind("<KeyRelease>", lambda event, s=root.totalleaves, r=index*6+2, c=2, i=index: update_annual_days(s, r, c, i))
-            root.totalleaves.bind("<ButtonRelease>", lambda event, s=root.totalleaves, r=index*6+2, c=2, i=index: update_annual_days(s, r, c, i))
+                # Menambahkan event listener untuk perubahan pada spinbox
+                root.totalleaves.bind("<KeyRelease>", lambda event, s=root.totalleaves, r=index*6+2, c=2, i=index: update_annual_days(s, r, c, i))
+                root.totalleaves.bind("<ButtonRelease>", lambda event, s=root.totalleaves, r=index*6+2, c=2, i=index: update_annual_days(s, r, c, i))
 
-        # save Button
-        root.saveBTN = CTkButton(root.new_window, text="Save", command='', width=195, fg_color="green", corner_radius=32)
-        root.saveBTN.pack(side = LEFT, expand=TRUE)
+            # save Button
+            root.saveBTN = CTkButton(root.new_window, text="Save", command='', width=195, fg_color="green", corner_radius=32)
+            root.saveBTN.pack(side = LEFT, expand=TRUE)
 
-        # cancel Button
-        root.cancelBTN = CTkButton(root.new_window, text="Cancel", command='', width=195, fg_color="red", corner_radius=32)
-        root.cancelBTN.pack(side = LEFT, expand=TRUE)
+            # cancel Button
+            root.cancelBTN = CTkButton(root.new_window, text="Cancel", command='', width=195, fg_color="red", corner_radius=32)
+            root.cancelBTN.pack(side = LEFT, expand=TRUE)
 
-        # Fokus ke jendela baru
-        root.new_window.focus()
-    else:
-        # Jika jendela sudah ada, fokus ke jendela tersebut
-        root.new_window.focus()
+            # Fokus ke jendela baru
+            root.new_window.focus()
+        else:
+            # Jika jendela sudah ada, fokus ke jendela tersebut
+            root.new_window.focus()
 
 # Buat objek class tk
 root = CTk()
@@ -348,7 +356,7 @@ root = CTk()
 # Setting ukuran judul
 root.title("Managed Service Shift Generator")
 root.geometry("360x350")
-root.resizable(False, False)  # Biarkan resize agar lebih fleksibel di berbagai resolusi
+root.resizable(False, False)
 set_appearance_mode("light")
 root.bind("<Configure>", update_font)
 
