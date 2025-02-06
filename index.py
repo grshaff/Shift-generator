@@ -99,8 +99,151 @@ def start_generate_data_thread():
     thread = threading.Thread(target=generate_data)
     thread.start()
 
-# Fungsi untuk generate shift data
 def generate_data():
+    
+    if not saved_data:  # Jika ada data cuti
+        withoutrulescuti()
+    else:
+        with_rulescuti()
+
+
+# Fungsi dengan aturan cuti
+def with_rulescuti():
+    global max_days
+    if hasattr(root, 'new_window') and root.new_window.winfo_exists():
+        messagebox.showerror("WARNING", "Save or close rules first!", parent=root.new_window)
+    else:
+        max_days = int(root.datecomBox.get())
+        start_day = root.daycomBox.get()
+
+        days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        start_index = days_of_week.index(start_day)
+        week_days = days_of_week[start_index:] + days_of_week[:start_index]
+
+        if inputted_names:
+            shift_data = []
+            total_names = len(inputted_names)
+
+            # Dictionary untuk menghitung jumlah shift
+            shift_count = {name: {"Malam": 0, "Pagi": 0, "Sore": 0} for name in inputted_names}
+            weekly_shift_count = {name: {"Malam": [], "Pagi": [], "Sore": []} for name in inputted_names}
+
+            # Loop untuk setiap hari
+            for day in range(max_days):
+                current_day = week_days[day % len(week_days)]
+
+                # Ambil list nama yang tersedia (tidak cuti pada hari ini)
+                available_names = []
+                leave_names = []  # Simpan nama yang cuti
+                for name in inputted_names:
+                    leave_days = saved_data.get(name, {}).get('days', [])
+                    if str(day + 1) not in leave_days:  # Jika tidak ada di daftar cuti
+                        available_names.append(name)
+                    else:
+                        leave_names.append(name)  # Nama orang yang cuti
+
+                # Jika tidak cukup orang yang tersedia, tambahkan orang sebagai backup
+                if len(available_names) < 3:
+                    additional_names = [name for name in inputted_names if name not in available_names]
+                    while len(available_names) < 3:
+                        available_names.append(additional_names.pop(0))
+
+                # Ambil nama secara acak dari daftar yang tersedia
+                random.shuffle(available_names)
+                day_shift = available_names[:3]
+
+                # Update shift_count untuk setiap shift
+                shift_count[day_shift[0]]["Malam"] += 1
+                shift_count[day_shift[1]]["Pagi"] += 1
+                shift_count[day_shift[2]]["Sore"] += 1
+
+                # Simpan shift per minggu
+                current_week = (day // 7) + 1
+                weekly_shift_count[day_shift[0]]["Malam"].append(current_week)
+                weekly_shift_count[day_shift[1]]["Pagi"].append(current_week)
+                weekly_shift_count[day_shift[2]]["Sore"].append(current_week)
+
+                # Tambahkan nama orang yang cuti ke shift data dengan keterangan 'On Leave'
+                for name in leave_names:
+                    day_shift.append(f"{name} on leave")
+
+                # Simpan data shift untuk hari tersebut
+                shift_data.append([current_day, day + 1] + day_shift)
+
+            # Membuat workbook dan worksheet baru
+            global workbook, sheet
+            workbook = Workbook()  # Workbook baru
+            sheet = workbook.active
+            sheet.title = "Shift Data"
+
+            # Menulis header
+            sheet.append(["Hari", "Tanggal", "Malam", "Pagi", "Sore"])
+            cell_bold(1, 5)
+
+            # Warna merah muda untuk hari Sabtu dan Minggu
+            pink_fill = PatternFill(start_color="FFC0CB", end_color="FFC0CB", fill_type="solid")
+
+            # Menulis data shift harian
+            for i, day_shift in enumerate(shift_data):
+                day_name = day_shift[0]
+                sheet.append(day_shift)
+
+                # Dapatkan baris terakhir yang baru saja ditambahkan
+                last_row = sheet.max_row
+
+                # Jika hari Sabtu atau Minggu, warnai baris tersebut dengan merah muda
+                if day_name == 'Saturday' or day_name == 'Sunday':
+                    for cell in sheet[last_row][:5]:
+                        cell.fill = pink_fill
+
+            # Menambahkan dua baris kosong sebagai pemisah
+            sheet.append([])
+            sheet.append([])
+            sheet.append([""])
+
+            # Tambahkan teks
+            sheet.append(["Total Shift per-weeks"])
+            merged_center_bold()
+
+            # Menulis total shift per minggu
+            current_week = 1
+            while current_week <= (max_days // 7) + 1:
+                sheet.append([f"Week {current_week}"])
+                merged_center_bold()
+                sheet.append(["", "Night", "Morning", "Afternoon"])
+
+                for name, shifts in weekly_shift_count.items():
+                    night_shifts = shifts["Malam"].count(current_week)
+                    morning_shifts = shifts["Pagi"].count(current_week)
+                    afternoon_shifts = shifts["Sore"].count(current_week)
+                    sheet.append([name, night_shifts, morning_shifts, afternoon_shifts])
+
+                sheet.append([])  # Pemisah antar minggu
+                current_week += 1
+
+            # Menambahkan dua baris kosong
+            sheet.append([])
+            sheet.append(["Total Shift per-month"])  # Tambahkan teks
+            merged_center_bold()
+            sheet.append(["Shifts", "Night", "Morning", "Afternoon"])
+
+            # Menulis hasil shift untuk setiap orang dalam format tabel
+            for name, shifts in shift_count.items():
+                sheet.append([name, shifts["Malam"], shifts["Pagi"], shifts["Sore"]])
+
+            # Simpan file Excel
+            filename = "shift.xlsx"
+            workbook.save(filename)
+
+            # Buka file Excel secara otomatis
+            os.startfile(filename)
+
+        else:
+            messagebox.showerror("ERROR", "No names to save!")
+
+
+# Fungsi tanpa aturan cuti
+def withoutrulescuti():
     global max_days
     if hasattr(root, 'new_window') and root.new_window.winfo_exists():
         messagebox.showerror("WARNING", "Save or close rules first!", parent=root.new_window)
@@ -153,7 +296,7 @@ def generate_data():
 
             # Menulis header
             sheet.append(["Hari", "Tanggal", "Malam", "Pagi", "Sore"])
-            cell_bold(1,5)
+            cell_bold(1, 5)
 
             # Warna merah muda untuk hari Sabtu dan Minggu
             pink_fill = PatternFill(start_color="FFC0CB", end_color="FFC0CB", fill_type="solid")
@@ -175,10 +318,11 @@ def generate_data():
             sheet.append([])
             sheet.append([])
             sheet.append([""])
-        
+
             # Tambahkan teks
             sheet.append(["Total Shift per-weeks"])
             merged_center_bold()
+
             # Menulis total shift per minggu
             current_week = 1
             while current_week <= (max_days // 7) + 1:
@@ -214,6 +358,7 @@ def generate_data():
 
         else:
             messagebox.showerror("ERROR", "No names to save!")
+
 
 def update_font(event):
     # Menghitung ukuran font berdasarkan lebar jendela
@@ -375,6 +520,7 @@ root.bind("<Configure>", update_font)
 bold_font = Font(bold=True)
 
 # Variable
+saved_data = {}
 namevar = StringVar()
 inputted_names = []
 
