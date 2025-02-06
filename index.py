@@ -289,10 +289,12 @@ def save_button():
     for index, name in enumerate(inputted_names):
         # Ambil nilai dari entry untuk total days dalam format 14;15 atau 13
         total_leaves_input = root.totalleaves[name].get()  # Mengambil nilai dari CTkEntry yang sesuai dengan nama
-        
         # Pisahkan input berdasarkan pemisah ';' untuk menghasilkan list day_entries
         day_entries = total_leaves_input.split(';')  # Split input menjadi list berdasarkan ';'
-        total_days = len(day_entries)
+        if total_leaves_input == '':
+            total_days = 0
+        else:
+            total_days = len(day_entries)
         # Simpan data ke dalam dictionary dengan nama sebagai kunci
         saved_data[name] = {
             "total_leaves": total_days,  # Menyimpan total hari dalam format string
