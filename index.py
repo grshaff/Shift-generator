@@ -15,8 +15,8 @@ import threading
 # Fungsi buat GUI  
 def create_widgets():
     # Logo
-    my_image = Image.open("./assets/SMG-logo.png")
-    my_image_resized = my_image.resize((103, 67))
+    my_image = Image.open("./assets/shift-gen.png")
+    my_image_resized = my_image.resize((200, 80))
     my_image_tk = ImageTk.PhotoImage(my_image_resized)
     root.image_label = CTkLabel(root, image=my_image_tk, text="",bg_color='transparent')
     root.image_label.place(relx=0.5, rely=0.14, anchor="center")  # Tengah secara horizontal dan sedikit di atas
@@ -70,10 +70,6 @@ def create_widgets():
     root.GenerateBTN = CTkButton(root, text="Generate", command=start_generate_data_thread, width=300, fg_color="green", corner_radius=32, text_color='white')
     root.GenerateBTN.place(relx=0.5, rely=0.92, anchor="center")
 
-# button add name func
-import tkinter as tk
-from tkinter import messagebox
-
 # Fungsi untuk log data
 def log_data(event=None):
     input_name = root.entryname.get().strip()
@@ -94,7 +90,6 @@ def log_data(event=None):
             messagebox.showerror("ERROR", "Please input a valid name containing only letters!")
     else:
         messagebox.showerror("ERROR", "Please input a name!")
-
 
 # Fungsi clear data
 def clear_data():
@@ -208,7 +203,7 @@ def with_rulescuti():
             sheet.title = "Shift Data"
 
             # Menulis header
-            sheet.append(["Hari", "Tanggal", "Malam", "Pagi", "Sore"])
+            sheet.append(["Day", "Date", "Night", "Morning", "Afternon"])
             cell_bold(1, 5)
 
             # Warna merah muda untuk hari Sabtu dan Minggu
@@ -326,7 +321,7 @@ def withoutrulescuti():
             sheet.title = "Shift Data"
 
             # Menulis header
-            sheet.append(["Hari", "Tanggal", "Malam", "Pagi", "Sore"])
+            sheet.append(["Day", "Date", "Night", "Morning", "Afternon"])
             cell_bold(1, 5)
 
             # Warna merah muda untuk hari Sabtu dan Minggu
@@ -378,7 +373,8 @@ def withoutrulescuti():
 
             # Menulis hasil shift untuk setiap orang dalam format tabel
             for name, shifts in shift_count.items():
-                sheet.append([name, shifts["Malam"], shifts["Pagi"], shifts["Sore"]])
+                total_shifts = shifts["Malam"] + shifts["Pagi"] + shifts["Sore"]
+                sheet.append([name, shifts["Malam"], shifts["Pagi"], shifts["Sore"], total_shifts])
 
             # Simpan file Excel
             filename = "shift.xlsx"
